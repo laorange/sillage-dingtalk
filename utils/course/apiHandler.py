@@ -21,6 +21,12 @@ class CourseDecorator:
 
         return self.filter(courseFilter)
 
+    def filter_of_lesson_num(self, lesson_number: int):
+        def courseFilter(c: Course) -> bool:
+            return c.lessonNum == lesson_number
+
+        return self.filter(courseFilter)
+
     # def filter_room(self, room):
     #     temp_infos = self.infos[:]
     #     for each in self.infos:
