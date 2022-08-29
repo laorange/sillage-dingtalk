@@ -5,7 +5,7 @@ import httpx
 from tqdm import tqdm
 import asyncio
 
-from utils.types import *
+from utils.dingtalk.types import *
 
 
 def getSettings(settingFileName) -> Settings:
