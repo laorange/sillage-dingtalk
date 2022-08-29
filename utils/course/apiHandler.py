@@ -5,21 +5,22 @@ import httpx
 
 from utils.course.types import Course
 
+CourseFilter = Callable[[Course], bool]
+
 
 class CourseDecorator:
     def __init__(self, courses: List[Course]):
         self.value: List[Course] = courses
 
-    def filter(self, filter_function: Callable[[Course], bool]):
+    def filter(self, filter_function: CourseFilter):
         return CourseDecorator(list(filter(filter_function, self.value)))
 
-    # def filter_grade(self, grade):
-    #     temp_infos = self.value[:]
-    #     for each in self.value:
-    #         if each['grade'] != grade:
-    #             temp_infos.remove(each)
-    #     return temp_infos
-    #
+    def filter_grades(self, grades: List[str]):
+        def courseFilter(c: Course) -> bool:
+            return c.grade in grades
+
+        return self.filter(courseFilter)
+
     # def filter_room(self, room):
     #     temp_infos = self.infos[:]
     #     for each in self.infos:
@@ -67,7 +68,7 @@ class ApiHandler:
 
         rawCourses = []
         for i in range(math.ceil(totalItems / 200)):
-            res = httpx.get(self.base_url, params=dict(page=i+1, perPage=self.max_per_page, sort="-updated"))
+            res = httpx.get(self.base_url, params=dict(page=i + 1, perPage=self.max_per_page, sort="-updated"))
             items = res.json()['items']
             rawCourses += items
 
