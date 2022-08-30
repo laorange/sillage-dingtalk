@@ -50,8 +50,6 @@ class CourseDecorator:
 
         return self.filter_grades(grades).filter(courseFiler)
 
-    # TODO: ofTeachers
-    # TODO: ofCourseNames
     # TODO: ofRooms
     def filter_of_date(self, date: str):
         def courseFiler(c: Course) -> bool:
@@ -67,10 +65,15 @@ class CourseDecorator:
 
     def filter_of_teachers(self, teachers: List[str]):
         def courseFiler(c: Course) -> bool:
-            return c.situation.teacher in teachers
+            return c.situations.teacher in teachers
 
         return self.filter(courseFiler)
 
+    def filter_of_course_names(self, course_names: List[str]):
+        def courseFiler(c: Course) -> bool:
+            return c.info.name in course_names
+
+        return self.filter(courseFiler)
     # def filter_room(self, room):
     #     temp_infos = self.infos[:]
     #     for each in self.infos:
