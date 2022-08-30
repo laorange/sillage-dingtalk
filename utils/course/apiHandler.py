@@ -1,3 +1,4 @@
+import datetime
 import json
 import math
 from typing import List, Callable, Tuple
@@ -48,6 +49,22 @@ class CourseDecorator:
             return False
 
         return self.filter_grades(grades).filter(courseFiler)
+
+    # TODO: ofMethods
+    # TODO: ofTeachers
+    # TODO: ofCourseNames
+    # TODO: ofRooms
+    def filter_of_date(self, date: str):
+        def courseFiler(c: Course) -> bool:
+            return date in c.dates
+
+        return self.filter(courseFiler)
+
+    def filter_of_methods(self, methods: List[str]):
+        def courseFiler(c: Course) -> bool:
+            return c.method in methods
+
+        return self.filter(courseFiler)
 
     # def filter_room(self, room):
     #     temp_infos = self.infos[:]
