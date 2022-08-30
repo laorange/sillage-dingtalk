@@ -50,7 +50,6 @@ class CourseDecorator:
 
         return self.filter_grades(grades).filter(courseFiler)
 
-    # TODO: ofMethods
     # TODO: ofTeachers
     # TODO: ofCourseNames
     # TODO: ofRooms
@@ -63,6 +62,12 @@ class CourseDecorator:
     def filter_of_methods(self, methods: List[str]):
         def courseFiler(c: Course) -> bool:
             return c.method in methods
+
+        return self.filter(courseFiler)
+
+    def filter_of_teachers(self, teachers: List[str]):
+        def courseFiler(c: Course) -> bool:
+            return c.situation.teacher in teachers
 
         return self.filter(courseFiler)
 
