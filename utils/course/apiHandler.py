@@ -64,7 +64,8 @@ class CourseDecorator:
 
     def filter_of_teachers(self, teachers: List[str]):
         def courseFiler(c: Course) -> bool:
-            return c.situations.teacher in teachers
+            teacher_list = list(map(lambda gg: gg[0].teacher, c.situations))
+            return whether_two_list_have_same_element(teacher_list, teachers)
 
         return self.filter(courseFiler)
 
@@ -76,7 +77,8 @@ class CourseDecorator:
 
     def filter_of_rooms(self, rooms: List[str]):
         def courseFiler(c: Course) -> bool:
-            return c.situations.room in rooms
+            room_list = list(map(lambda gg: gg[0].room, c.situations))
+            return whether_two_list_have_same_element(room_list, rooms)
 
         return self.filter(courseFiler)
     # def filter_room(self, room):
