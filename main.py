@@ -5,7 +5,7 @@ from urllib.parse import urlparse, parse_qs
 
 from apscheduler.schedulers.background import BlockingScheduler
 
-from utils.course import apiHandler, CourseDecorator
+from utils.course import apiHandler, CourseDecorator, QueryParseResult
 from utils.dingtalk import dingTalkHandler
 
 
@@ -16,12 +16,17 @@ class UserHandler:
 
     def getCourseDecorator(self) -> CourseDecorator:
         urlParseResult = urlparse(SillageDingtalkHandler.urlStrip(self.subscribedUrl))
-        queryParseResult = parse_qs(urlParseResult.query)
+        queryParseResult = QueryParseResult(**parse_qs(urlParseResult.query))
 
-        # TODO: 课程过滤
-        ...
+        courseDecorator = apiHandler.courseDecorator
+        courseDecorator = courseDecorator.filter_grades(queryParseResult.grade) if queryParseResult.grade else courseDecorator
+        courseDecorator = courseDecorator.filter_of_rooms(queryParseResult.room) if queryParseResult.room else courseDecorator
+        courseDecorator = courseDecorator.filter_of_methods(queryParseResult.method) if queryParseResult.method else courseDecorator
+        courseDecorator = courseDecorator.filter_of_teachers(queryParseResult.teacher) if queryParseResult.teacher else courseDecorator
+        courseDecorator = courseDecorator.filter_of_grade_groups(queryParseResult.group) if queryParseResult.group else courseDecorator
+        courseDecorator = courseDecorator.filter_of_course_names(queryParseResult.subject) if queryParseResult.subject else courseDecorator
 
-        return apiHandler.courseDecorator
+        return courseDecorator
 
     def sendCorporationTextMsg(self, msg: str):
         asyncio.run(dingTalkHandler.sendCorporationTextMsg([self.userId], msg))
@@ -61,7 +66,13 @@ class SillageDingtalkHandler:
     def urlStrip(url: str):
         return re.sub(r"https?://[a-z]+\.siae.top/#/", "", url)
 
+    def dev(self):
+        for user in self.users:
+            courses = user.getCourseDecorator().value
+            print(len(courses))
+
 
 if __name__ == '__main__':
     mainHandler = SillageDingtalkHandler()
+    mainHandler.dev()  # TODO: 调试完成后删除本行
     mainHandler.start()

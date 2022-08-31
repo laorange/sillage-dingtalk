@@ -1,4 +1,4 @@
 from .apiHandler import ApiHandler, CourseDecorator
-from .types import Course
+from .types import *
 
 apiHandler = ApiHandler()

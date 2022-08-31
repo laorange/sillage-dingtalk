@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from pydantic import BaseModel
 
@@ -32,3 +32,10 @@ class Course(PocketBaseModel):
     note: Optional[str]
     method: Optional[str]
 
+class QueryParseResult(BaseModel):
+    grade: Optional[List[str]]
+    room: Optional[List[str]]
+    method: Optional[List[str]]
+    teacher: Optional[List[str]]
+    group: Optional[List[str]]
+    subject: Optional[List[str]]
