@@ -63,6 +63,9 @@ class DingTalkHandler:
         self.accessToken = accessToken
         return accessToken
 
+    def refreshAccessToken(self):
+        self.accessToken = self.getAccessToken()
+
     @staticmethod
     async def getDingTalkResponse(method: Method, url: str, **kwargs) -> Dict:
         if method == "GET":
@@ -200,3 +203,66 @@ class DingTalkHandler:
         # }}
 
         return await self.getDingTalkResponse("POST", url, params=params, json=data)
+
+    async def sendCorporationMsg(self, user_id_list: List[UserId], msg: Dict) -> Dict:
+        """
+        发送工作消息\n
+        :param user_id_list: 发送目标的id
+        :param msg: 发送的消息内容
+        :return: post请求后的结果
+        """
+        url = "https://oapi.dingtalk.com/topapi/message/corpconversation/asyncsend_v2"
+        params = dict(access_token=self.accessToken)
+        data = {"agent_id": self.agentId,
+                "msg": msg,
+                "userid_list": ",".join(user_id_list)}
+
+        return await self.getDingTalkResponse("POST", url, params=params, data=data)
+
+    async def sendCorporationTextMsg(self, user_id_list: List[UserId], text: str) -> Dict:
+        """发送文字类型的工作消息"""
+        return await self.sendCorporationMsg(user_id_list, msg={"msgtype": "text", "text": {"content": text}})
+
+    def getForms(self) -> List[FormProfile]:
+        url = f"https://api.dingtalk.com/v1.0/swform/users/forms"
+        headers = {"x-acs-dingtalk-access-token": self.accessToken}
+        params = dict(maxResults=200, bizType=0, nextToken=0)
+
+        rawForms = httpx.get(url, headers=headers, params=params).json()["result"]["list"]
+        return [FormProfile(**rawForm) for rawForm in rawForms]
+
+    def getFormRecords(self, formCode: str) -> List[FormRecord]:
+        url = f"https://api.dingtalk.com/v1.0/swform/forms/{formCode}/instances"
+        headers = {"x-acs-dingtalk-access-token": self.accessToken}
+        params = dict(maxResults=100, bizType=0, nextToken=0)
+        response: dict = httpx.get(url, headers=headers, params=params).json()
+
+        rawFormResult = response.get("result", {"hasMore": False, "nextToken": 10, "list": []})
+        formResult = FormResult(**rawFormResult)
+        forms = formResult.list
+
+        while formResult.hasMore:
+            params = dict(maxResults=100, bizType=0, nextToken=formResult.nextToken)
+            response = httpx.get(url, headers=headers, params=params).json()
+            rawFormResult = response.get("result", {"hasMore": False, "nextToken": 10, "list": []})
+            formResult = FormResult(**rawFormResult)
+            forms += formResult.list
+
+        return forms
+
+    def getSillageUserAndUrlList(self) -> List[Tuple[FormRecord, str]]:
+        outputs: List[Tuple[FormRecord, str]] = []
+
+        forms = self.getForms()
+        formRecords = self.getFormRecords(forms[0].formCode)
+        for formRecord in formRecords:
+            # 查找 是否启用钉钉推送
+            if len([formDetail for formDetail in formRecord.forms if (formDetail.label == '是否启用钉钉推送？' and formDetail.value == '启用')]):
+                # 查找 用户订阅的链接
+                urls = [formDetail.value for formDetail in formRecord.forms if formDetail.label == '请输入您要订阅的课表网址：']
+                if not len(urls):
+                    raise Exception("表单内容已变更，请检查！")
+                url: str = urls[0]
+                outputs.append((formRecord, url))
+
+        return outputs

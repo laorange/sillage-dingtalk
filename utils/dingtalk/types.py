@@ -1,4 +1,5 @@
-from typing import TypedDict, List, Dict, Literal, Tuple
+from typing import TypedDict, List, Dict, Literal, Tuple, Optional
+from pydantic import BaseModel
 
 UserId = str
 UserName = str
@@ -63,3 +64,45 @@ class Settings(TypedDict):
     APP_SECRET: str
     STATUS: Literal["INIT", "PREPARED", "WORKING", "DONE"]
     ADDRESS_BOOK: AddressBook
+
+
+# form
+class FormProfile(BaseModel):
+    #     {
+    #         "creator":"\d+",
+    #         "formCode":"\w+",
+    #         "name":"订阅钉钉推送",
+    #         "memo":"您可以通过填写此表来订阅每天的课程提醒",
+    #         "setting":{
+    #             "formType":0,
+    #             "bizType":0,
+    #             "stop":false,
+    #             "createTime":"2022-08-11T10:22Z"
+    #         }
+    #     }[]
+    formCode: str
+    creator: str
+    name: str
+    memo: str
+
+
+class FormDetail(BaseModel):
+    label: Optional[str]
+    key: Optional[str]
+    value: str
+
+
+class FormRecord(BaseModel):
+    forms: List[FormDetail]
+    createTime: str
+    modifyTime: str
+    formCode: str
+    submitterUserId: str
+    submitterUserName: str
+    formInstanceId: str
+
+
+class FormResult(BaseModel):
+    hasMore: bool
+    nextToken: str
+    list: Optional[List[FormRecord]]
