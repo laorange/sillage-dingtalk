@@ -55,13 +55,13 @@ class SillageDingtalkHandler:
         self.scheduler.add_job(self.goodNight, "date", next_run_time=getTodayHM(17, 30))
 
         # # 调试用
-        self.scheduler.add_job(self.goodMorning, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=4))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=5))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=6))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=7))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=8))
-        self.scheduler.add_job(self.goodNight, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=9))
+        # self.scheduler.add_job(self.goodMorning, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=4))
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=5))
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=6))
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=7))
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=8))
+        # self.scheduler.add_job(self.goodNight, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=9))
 
     def start(self):
         self.scheduler.start()
