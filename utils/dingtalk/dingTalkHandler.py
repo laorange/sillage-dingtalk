@@ -223,6 +223,10 @@ class DingTalkHandler:
         """发送文字类型的工作消息"""
         return await self.sendCorporationMsg(user_id_list, msg={"msgtype": "text", "text": {"content": text}})
 
+    async def sendCorporationMarkdownMsg(self, user_id_list: List[UserId], title: str, text: str) -> Dict:
+        """发送Markdown类型的工作消息"""
+        return await self.sendCorporationMsg(user_id_list, msg={"msgtype": "markdown", "markdown": {"title": title, "text": text}})
+
     def getForms(self) -> List[FormProfile]:
         url = f"https://api.dingtalk.com/v1.0/swform/users/forms"
         headers = {"x-acs-dingtalk-access-token": self.accessToken}

@@ -33,8 +33,8 @@ class UserHandler:
 
         return courseDecorator
 
-    def sendCorporationTextMsg(self, msg: str):
-        asyncio.run(dingTalkHandler.sendCorporationTextMsg([self.userId], msg))
+    def sendCorporationMsg(self, msg: str):
+        asyncio.run(dingTalkHandler.sendCorporationMarkdownMsg([self.userId], title="课程提醒", text=msg))
 
 
 class SillageDingtalkHandler:
@@ -55,13 +55,13 @@ class SillageDingtalkHandler:
         self.scheduler.add_job(self.goodNight, "date", next_run_time=getTodayHM(17, 30))
 
         # # 调试用
-        # self.scheduler.add_job(self.goodMorning, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
-        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=4))
-        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=5))
-        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=6))
-        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=7))
-        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=8))
-        # self.scheduler.add_job(self.goodNight, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=9))
+        self.scheduler.add_job(self.goodMorning, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=4))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=5))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=6))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=7))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=8))
+        self.scheduler.add_job(self.goodNight, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=9))
 
     def start(self):
         self.scheduler.start()
@@ -86,18 +86,18 @@ class SillageDingtalkHandler:
         for user in self.users:
             courseDecoratorOfThisLessonNum = user.getCourseDecorator().filter_of_date(date).filter_of_lesson_num(lessonNum)
             if len(courseDecoratorOfThisLessonNum.value):
-                user.sendCorporationTextMsg(f"{str(courseDecoratorOfThisLessonNum).strip()}"
-                                            # f"\n{'-' * 8}\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"  # 调试用
-                                            )
+                msg = f"{str(courseDecoratorOfThisLessonNum).strip()}" \
+                      f"\n\n{'-' * 8}\n\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"  # 调试用
+                user.sendCorporationMsg(msg)
 
     @logger.catch
     def sendCourseOfDate(self, date: str, dateDescription: str = "今天："):
         for user in self.users:
             courseDecoratorOfThisDate = user.getCourseDecorator().filter_of_date(date)
             if len(courseDecoratorOfThisDate.value):
-                user.sendCorporationTextMsg(f"{dateDescription}\n{str(courseDecoratorOfThisDate).strip()}"
-                                            # f"\n{'-' * 8}\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"  # 调试用
-                                            )
+                msg = f"{dateDescription}\n\n{str(courseDecoratorOfThisDate).strip()}" \
+                      f"\n\n{'-' * 8}\n\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"  # 调试用
+                user.sendCorporationMsg(msg)
 
     @staticmethod
     def urlStrip(url: str):

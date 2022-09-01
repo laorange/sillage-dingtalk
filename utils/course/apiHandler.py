@@ -83,20 +83,20 @@ class CourseDecorator:
 
     def __str__(self):
         def decorateStr(s: str):
-            return s + "\n" if s else ""
+            return s + "\n\n" if s else ""
 
         def getCourseStr(c: Course):
             courseStr = ""
             courseStr += decorateStr(c.info.name)
             courseStr += decorateStr(c.method)
-            if len(c.situations) == 1:
-                situ = c.situations[0]
-                courseStr += "".join([decorateStr("丨".join(situ.groups) if situ.groups else ""), decorateStr(situ.teacher), decorateStr(situ.room)])
-            elif len(c.situations) > 1:
-                courseStr += "丨".join([decorateStr("丨".join(situ.groups) if situ.groups else "") + decorateStr(situ.teacher) + decorateStr(situ.room)
-                                       for situ in c.situations])
+            if len(c.situations) >= 1:
+                courseStr += "\n\n".join(["丨".join([item for item in [
+                    decorateStr("&".join(situ.groups) if situ.groups else "").strip(),
+                    decorateStr(situ.teacher).strip(),
+                    decorateStr(situ.room).strip()
+                ] if item]) for situ in c.situations])
             courseStr += decorateStr(c.note)
-            return courseStr
+            return courseStr.strip()
 
         # -----------
         lessonNumStrList: List[str] = []
@@ -105,10 +105,10 @@ class CourseDecorator:
             lessonNumStr = ""
             coursesOfLessonNum = self.filter_of_lesson_num(lessonNum).value
             if len(coursesOfLessonNum):
-                lessonNumStr += f"第 {lessonNum} 节课：\n"
-                lessonNumStr += "\n\n".join([getCourseStr(c) for c in coursesOfLessonNum])
+                lessonNumStr += f"# 第 {lessonNum} 节课\n\n"
+                lessonNumStr += "\n\n---\n\n".join([getCourseStr(c) for c in coursesOfLessonNum])
                 lessonNumStrList.append(lessonNumStr.strip())
-        return f"\n{'-' * 8}\n".join(lessonNumStrList)
+        return f"\n\n---\n\n".join(lessonNumStrList)
 
 
 class ApiHandler:
