@@ -1,4 +1,3 @@
-import datetime
 import json
 import math
 from typing import List, Callable, Tuple
@@ -81,40 +80,35 @@ class CourseDecorator:
             return whether_two_list_have_same_element(room_list, rooms)
 
         return self.filter(courseFiler)
-    # def filter_room(self, room):
-    #     temp_infos = self.infos[:]
-    #     for each in self.infos:
-    #         if each['situations'][0]['room'] != room:
-    #             temp_infos.remove(each)
-    #     return temp_infos
-    #
-    # def filter_method(self, method):
-    #     temp_infos = self.infos[:]
-    #     for each in self.infos:
-    #         if each['method'] != method:
-    #             temp_infos.remove(each)
-    #     return temp_infos
-    #
-    # def filter_teacher(self, teacher):
-    #     temp_infos = self.infos[:]
-    #     for each in self.infos:
-    #         if each['situations'][0]['teacher'] != teacher:
-    #             temp_infos.remove(each)
-    #     return temp_infos
-    #
-    # def filter_group(self, group):
-    #     temp_infos = self.infos[:]
-    #     for each in self.infos:
-    #         if (group[0] not in each['situations'][0]['groups']) or (group[1] not in each['situations'][0]['groups']):
-    #             temp_infos.remove(each)
-    #     return temp_infos
-    #
-    # def filter_subject(self, subject):
-    #     temp_infos = self.infos[:]
-    #     for each in self.infos:
-    #         if each['info'][0]['name'] != subject:
-    #             temp_infos.remove(each)
-    #     return temp_infos
+
+    def __str__(self):
+        def decorateStr(s: str):
+            return s + "\n" if s else ""
+
+        def getCourseStr(c: Course):
+            courseStr = ""
+            courseStr += decorateStr(c.info.name)
+            courseStr += decorateStr(c.method)
+            if len(c.situations) == 1:
+                situ = c.situations[0]
+                courseStr += "".join([decorateStr("丨".join(situ.groups) if situ.groups else ""), decorateStr(situ.teacher), decorateStr(situ.room)])
+            elif len(c.situations) > 1:
+                courseStr += "丨".join([decorateStr("丨".join(situ.groups) if situ.groups else "") + decorateStr(situ.teacher) + decorateStr(situ.room)
+                                       for situ in c.situations])
+            courseStr += decorateStr(c.note)
+            return courseStr
+
+        # -----------
+        lessonNumStrList: List[str] = []
+
+        for lessonNum in range(1, 6):
+            lessonNumStr = ""
+            coursesOfLessonNum = self.filter_of_lesson_num(lessonNum).value
+            if len(coursesOfLessonNum):
+                lessonNumStr += f"第 {lessonNum} 节课：\n"
+                lessonNumStr += "\n\n".join([getCourseStr(c) for c in coursesOfLessonNum])
+                lessonNumStrList.append(lessonNumStr.strip())
+        return f"\n{'-' * 8}\n".join(lessonNumStrList)
 
 
 class ApiHandler:

@@ -68,23 +68,28 @@ class SillageDingtalkHandler:
 
     def goodMorning(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
-        self.sendCourseOfDate(todayDate)
+        self.sendCourseOfDate(todayDate, dateDescription=f"今天({todayDate})")
 
     def goodNight(self):
         tomorrowDate = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-        self.sendCourseOfDate(tomorrowDate)
+        self.sendCourseOfDate(tomorrowDate, f"明天({tomorrowDate})")
 
-    def sendCoursesOfLessonNum(self, lessonNum: int):
+    def sendCoursesOfLessonNum(self, lessonNum: int, date: str = ""):
+        if not date:
+            date = datetime.date.today().strftime("%Y-%m-%d")  # 默认为今天
+
         for user in self.users:
-            courseDecoratorOfThisLessonNum = user.getCourseDecorator().filter_of_lesson_num(lessonNum)
+            courseDecoratorOfThisLessonNum = user.getCourseDecorator().filter_of_date(date).filter_of_lesson_num(lessonNum)
             if len(courseDecoratorOfThisLessonNum.value):
-                user.sendCorporationTextMsg(str(courseDecoratorOfThisLessonNum.value) + f"\n调试：{datetime.datetime.now()}")
+                user.sendCorporationTextMsg(f"{str(courseDecoratorOfThisLessonNum).strip()}"
+                                            f"\n{'-' * 8}\n发送时间：{datetime.datetime.now().strftime('%H:%M:%S')}")
 
-    def sendCourseOfDate(self, date: str):
+    def sendCourseOfDate(self, date: str, dateDescription: str = "今天：", addition: str = ""):
         for user in self.users:
             courseDecoratorOfThisDate = user.getCourseDecorator().filter_of_date(date)
             if len(courseDecoratorOfThisDate.value):
-                user.sendCorporationTextMsg(str(courseDecoratorOfThisDate.value) + f"\n调试：{datetime.datetime.now()}")
+                user.sendCorporationTextMsg(f"{dateDescription}\n{str(courseDecoratorOfThisDate).strip()}"
+                                            f"\n{'-' * 8}\n发送时间：{datetime.datetime.now().strftime('%H:%M:%S')}")
 
     @staticmethod
     def urlStrip(url: str):
