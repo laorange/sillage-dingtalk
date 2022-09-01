@@ -3,10 +3,13 @@ import datetime
 import re
 from typing import List
 from functools import partial
+from urllib.parse import urlparse, parse_qs
 
 from apscheduler.schedulers.background import BlockingScheduler
+from loguru import logger
 
-from urllib.parse import urlparse, parse_qs
+logger.add("log/file_{time}.log", rotation="04:00", retention="10 days", level="INFO")
+
 from utils.course import apiHandler, CourseDecorator, QueryParseResult
 from utils.dingtalk import dingTalkHandler
 
@@ -64,7 +67,7 @@ class SillageDingtalkHandler:
         self.scheduler.start()
 
     def shutdown(self):
-        self.scheduler.shutdown(wait=True)
+        self.scheduler.shutdown(wait=False)
 
     def goodMorning(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
@@ -75,6 +78,7 @@ class SillageDingtalkHandler:
         self.sendCourseOfDate(tomorrowDate, f"明天({tomorrowDate})")
         self.shutdown()
 
+    @logger.catch
     def sendCoursesOfLessonNum(self, lessonNum: int, date: str = ""):
         if not date:
             date = datetime.date.today().strftime("%Y-%m-%d")  # 默认为今天
@@ -86,6 +90,7 @@ class SillageDingtalkHandler:
                                             # f"\n{'-' * 8}\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"  # 调试用
                                             )
 
+    @logger.catch
     def sendCourseOfDate(self, date: str, dateDescription: str = "今天："):
         for user in self.users:
             courseDecoratorOfThisDate = user.getCourseDecorator().filter_of_date(date)
