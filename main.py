@@ -51,14 +51,14 @@ class SillageDingtalkHandler:
         self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=getTodayHM(17, 10))
         self.scheduler.add_job(self.goodNight, "date", next_run_time=getTodayHM(17, 30))
 
-        # TODO: 调试完成后删除本段
-        self.scheduler.add_job(self.goodMorning, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=4))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=5))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=6))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=7))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=8))
-        self.scheduler.add_job(self.goodNight, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=9))
+        # # 调试用
+        # self.scheduler.add_job(self.goodMorning, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=4))
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=5))
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=6))
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=7))
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=8))
+        # self.scheduler.add_job(self.goodNight, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=9))
 
     def start(self):
         self.scheduler.start()
@@ -73,6 +73,7 @@ class SillageDingtalkHandler:
     def goodNight(self):
         tomorrowDate = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
         self.sendCourseOfDate(tomorrowDate, f"明天({tomorrowDate})")
+        self.shutdown()
 
     def sendCoursesOfLessonNum(self, lessonNum: int, date: str = ""):
         if not date:
@@ -82,14 +83,16 @@ class SillageDingtalkHandler:
             courseDecoratorOfThisLessonNum = user.getCourseDecorator().filter_of_date(date).filter_of_lesson_num(lessonNum)
             if len(courseDecoratorOfThisLessonNum.value):
                 user.sendCorporationTextMsg(f"{str(courseDecoratorOfThisLessonNum).strip()}"
-                                            f"\n{'-' * 8}\n发送时间：{datetime.datetime.now().strftime('%H:%M:%S')}")
+                                            # f"\n{'-' * 8}\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"  # 调试用
+                                            )
 
-    def sendCourseOfDate(self, date: str, dateDescription: str = "今天：", addition: str = ""):
+    def sendCourseOfDate(self, date: str, dateDescription: str = "今天："):
         for user in self.users:
             courseDecoratorOfThisDate = user.getCourseDecorator().filter_of_date(date)
             if len(courseDecoratorOfThisDate.value):
                 user.sendCorporationTextMsg(f"{dateDescription}\n{str(courseDecoratorOfThisDate).strip()}"
-                                            f"\n{'-' * 8}\n发送时间：{datetime.datetime.now().strftime('%H:%M:%S')}")
+                                            # f"\n{'-' * 8}\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"  # 调试用
+                                            )
 
     @staticmethod
     def urlStrip(url: str):
