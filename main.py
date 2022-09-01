@@ -1,10 +1,12 @@
 import asyncio
+import datetime
 import re
 from typing import List
-from urllib.parse import urlparse, parse_qs
+from functools import partial
 
 from apscheduler.schedulers.background import BlockingScheduler
 
+from urllib.parse import urlparse, parse_qs
 from utils.course import apiHandler, CourseDecorator, QueryParseResult
 from utils.dingtalk import dingTalkHandler
 
@@ -37,15 +39,26 @@ class SillageDingtalkHandler:
         userTupleList = dingTalkHandler.getSillageUserAndUrlList()
         self.users: List[UserHandler] = [UserHandler(userTuple[0].submitterUserId, userTuple[1]) for userTuple in userTupleList]
 
+        today = datetime.datetime.today()
+        getTodayHM = lambda hour, minute: datetime.datetime(today.year, today.month, today.day, hour, minute)
+
         self.scheduler = BlockingScheduler()
-        self.scheduler.add_job(self.job_function, 'cron', hour=6, minute=00)
-        self.scheduler.add_job(self.job_function, 'cron', hour=7, minute=30)
-        self.scheduler.add_job(self.job_function, 'cron', hour=9, minute=35)
-        self.scheduler.add_job(self.job_function, 'cron', hour=11, minute=40)
-        self.scheduler.add_job(self.job_function, 'cron', hour=15, minute=5)
-        self.scheduler.add_job(self.job_function, 'cron', hour=17, minute=10)
-        self.scheduler.add_job(self.job_function, 'cron', hour=17, minute=30)
-        self.scheduler.add_job(self.job_function, 'cron', hour=21, minute=39)
+        self.scheduler.add_job(self.goodMorning, "date", next_run_time=getTodayHM(6, 0))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=getTodayHM(7, 30))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=getTodayHM(9, 35))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=getTodayHM(11, 40))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=getTodayHM(15, 5))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=getTodayHM(17, 10))
+        self.scheduler.add_job(self.goodNight, "date", next_run_time=getTodayHM(17, 30))
+
+        # TODO: 调试完成后删除本段
+        self.scheduler.add_job(self.goodMorning, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=4))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=5))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=6))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=7))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=8))
+        self.scheduler.add_job(self.goodNight, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=9))
 
     def start(self):
         self.scheduler.start()
@@ -53,26 +66,31 @@ class SillageDingtalkHandler:
     def shutdown(self):
         self.scheduler.shutdown(wait=True)
 
-    def job_function(self):
-        print("TODO: 发送课程信息")
+    def goodMorning(self):
+        todayDate = datetime.date.today().strftime("%Y-%m-%d")
+        self.sendCourseOfDate(todayDate)
+
+    def goodNight(self):
+        tomorrowDate = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        self.sendCourseOfDate(tomorrowDate)
 
     def sendCoursesOfLessonNum(self, lessonNum: int):
-        ...
+        for user in self.users:
+            courseDecoratorOfThisLessonNum = user.getCourseDecorator().filter_of_lesson_num(lessonNum)
+            if len(courseDecoratorOfThisLessonNum.value):
+                user.sendCorporationTextMsg(str(courseDecoratorOfThisLessonNum.value) + f"\n调试：{datetime.datetime.now()}")
 
     def sendCourseOfDate(self, date: str):
-        ...
+        for user in self.users:
+            courseDecoratorOfThisDate = user.getCourseDecorator().filter_of_date(date)
+            if len(courseDecoratorOfThisDate.value):
+                user.sendCorporationTextMsg(str(courseDecoratorOfThisDate.value) + f"\n调试：{datetime.datetime.now()}")
 
     @staticmethod
     def urlStrip(url: str):
         return re.sub(r"https?://[a-z]+\.siae.top/#/", "", url)
 
-    def dev(self):
-        for user in self.users:
-            courses = user.getCourseDecorator().value
-            print(len(courses))
-
 
 if __name__ == '__main__':
     mainHandler = SillageDingtalkHandler()
-    mainHandler.dev()  # TODO: 调试完成后删除本行
     mainHandler.start()
