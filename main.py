@@ -46,13 +46,14 @@ class SillageDingtalkHandler:
         getTodayHM = lambda hour, minute: datetime.datetime(today.year, today.month, today.day, hour, minute)
 
         self.scheduler = BlockingScheduler()
-        self.scheduler.add_job(self.goodMorning, "date", next_run_time=getTodayHM(6, 0))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=getTodayHM(7, 30))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=getTodayHM(9, 35))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=getTodayHM(11, 40))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=getTodayHM(15, 5))
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=getTodayHM(17, 10))
-        self.scheduler.add_job(self.goodNight, "date", next_run_time=getTodayHM(17, 30))
+        self.scheduler.add_job(self.refreshAccessToken, 'interval', hours=1)
+        self.scheduler.add_job(self.goodMorning, "date", next_run_time=getTodayHM(6, 0), misfire_grace_time=600)
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=getTodayHM(7, 30), misfire_grace_time=600)
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=getTodayHM(9, 35), misfire_grace_time=600)
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=getTodayHM(11, 40), misfire_grace_time=600)
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=getTodayHM(15, 5), misfire_grace_time=600)
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=getTodayHM(17, 10), misfire_grace_time=600)
+        self.scheduler.add_job(self.goodNight, "date", next_run_time=getTodayHM(17, 30), misfire_grace_time=600)
 
         # # 调试用
         # self.scheduler.add_job(self.goodMorning, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
@@ -68,6 +69,10 @@ class SillageDingtalkHandler:
 
     def shutdown(self):
         self.scheduler.shutdown(wait=False)
+
+    @staticmethod
+    def refreshAccessToken():
+        dingTalkHandler.accessToken = dingTalkHandler.getAccessToken()
 
     def goodMorning(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
