@@ -76,7 +76,7 @@ class SillageDingtalkHandler:
 
     def goodMorning(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
-        self.sendCourseOfDate(todayDate, dateDescription=f"今天({todayDate})")
+        self.sendCourseOfDate(todayDate, dateDescription=f"今天({todayDate})", addition="更多信息: yuque.com/laorange/sillage")
 
     def goodNight(self):
         tomorrowDate = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
@@ -84,24 +84,26 @@ class SillageDingtalkHandler:
         self.shutdown()
 
     @logger.catch
-    def sendCoursesOfLessonNum(self, lessonNum: int, date: str = ""):
+    def sendCoursesOfLessonNum(self, lessonNum: int, date: str = "", addition: str = "", sendDateTime: bool = False):
         if not date:
             date = datetime.date.today().strftime("%Y-%m-%d")  # 默认为今天
 
         for user in self.users:
             courseDecoratorOfThisLessonNum = user.getCourseDecorator().filter_of_date(date).filter_of_lesson_num(lessonNum)
             if len(courseDecoratorOfThisLessonNum.value):
-                msg = f"{str(courseDecoratorOfThisLessonNum).strip()}" \
-                      f"\n\n{'-' * 8}\n\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"  # 调试用
+                msg = f"{str(courseDecoratorOfThisLessonNum).strip()}"
+                msg += f"\n\n{'-' * 8}\n\n{addition}" if addition else ""
+                msg += f"\n\n{'-' * 8}\n\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}" if sendDateTime else ""
                 user.sendCorporationMsg(msg)
 
     @logger.catch
-    def sendCourseOfDate(self, date: str, dateDescription: str = "今天："):
+    def sendCourseOfDate(self, date: str, dateDescription: str = "今天：", addition: str = "", sendDateTime: bool = False):
         for user in self.users:
             courseDecoratorOfThisDate = user.getCourseDecorator().filter_of_date(date)
             if len(courseDecoratorOfThisDate.value):
-                msg = f"{dateDescription}\n\n{str(courseDecoratorOfThisDate).strip()}" \
-                      f"\n\n{'-' * 8}\n\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"  # 调试用
+                msg = f"{dateDescription}\n\n{str(courseDecoratorOfThisDate).strip()}"
+                msg += f"\n\n{'-' * 8}\n\n{addition}" if addition else ""
+                msg += f"\n\n{'-' * 8}\n\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}" if sendDateTime else ""
                 user.sendCorporationMsg(msg)
 
     @staticmethod
