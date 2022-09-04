@@ -39,14 +39,13 @@ class UserHandler:
 
 class SillageDingtalkHandler:
     def __init__(self):
-        userTupleList = dingTalkHandler.getSillageUserAndUrlList()
-        self.users: List[UserHandler] = [UserHandler(userTuple[0].submitterUserId, userTuple[1]) for userTuple in userTupleList]
-
         today = datetime.datetime.today()
         getTodayHM = lambda hour, minute: datetime.datetime(today.year, today.month, today.day, hour, minute)
 
+        self.users: List[UserHandler] = self.getUsers()
+
         self.scheduler = BlockingScheduler()
-        self.scheduler.add_job(self.refreshAccessToken, 'interval', hours=1)
+        self.scheduler.add_job(self.refreshRemoteData, 'interval', hours=1)  # 每隔一个小时，刷新一次远端数据
         self.scheduler.add_job(self.goodMorning, "date", next_run_time=getTodayHM(6, 0), misfire_grace_time=600)
         self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=getTodayHM(7, 30), misfire_grace_time=600)
         self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=getTodayHM(9, 35), misfire_grace_time=600)
@@ -64,15 +63,25 @@ class SillageDingtalkHandler:
         # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=8))
         # self.scheduler.add_job(self.goodNight, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=9))
 
+    @staticmethod
+    def getUsers() -> List[UserHandler]:
+        userTupleList = dingTalkHandler.getSillageUserAndUrlList()
+        return [UserHandler(userTuple[0].submitterUserId, userTuple[1]) for userTuple in userTupleList]
+
+    def refreshUsers(self):
+        self.users: List[UserHandler] = self.getUsers()
+
     def start(self):
         self.scheduler.start()
 
     def shutdown(self):
         self.scheduler.shutdown(wait=False)
 
-    @staticmethod
-    def refreshAccessToken():
+    def refreshRemoteData(self):
+        """刷新AccessToken、重新获取课程、重新获取订阅用户列表"""
         dingTalkHandler.accessToken = dingTalkHandler.getAccessToken()
+        apiHandler.refreshCourses()
+        self.refreshUsers()
 
     def goodMorning(self):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")

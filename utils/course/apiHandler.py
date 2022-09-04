@@ -117,6 +117,9 @@ class ApiHandler:
     courseDecorator: CourseDecorator
 
     def __init__(self):
+        self.courseDecorator = self.getNewCourseDecorator()
+
+    def getNewCourseDecorator(self):
         res = httpx.get(self.base_url, params=dict(page=1, perPage=1, sort="-updated"))
         totalItems = res.json()['totalItems']
 
@@ -126,4 +129,7 @@ class ApiHandler:
             items = res.json()['items']
             rawCourses += items
 
-        self.courseDecorator = CourseDecorator([Course(**rawCourse) for rawCourse in rawCourses])
+        return CourseDecorator([Course(**rawCourse) for rawCourse in rawCourses])
+
+    def refreshCourses(self):
+        self.courseDecorator = self.getNewCourseDecorator()
