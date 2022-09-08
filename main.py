@@ -33,35 +33,19 @@ class UserHandler:
 
         return courseDecorator
 
-    def sendCorporationMsg(self, msg: str):
-        asyncio.run(dingTalkHandler.sendCorporationMarkdownMsg([self.userId], title="课程提醒", text=msg))
+    def sendCorporationMsg(self, msg: str, title="课程提醒"):
+        asyncio.run(dingTalkHandler.sendCorporationMarkdownMsg([self.userId], title=title, text=msg))
 
 
 class SillageDingtalkHandler:
     def __init__(self):
-        today = datetime.datetime.today()
-        getTodayHM = lambda hour, minute: datetime.datetime(today.year, today.month, today.day, hour, minute)
-
         self.users: List[UserHandler] = self.getUsers()
-
         self.scheduler = BlockingScheduler()
-        self.scheduler.add_job(self.refreshRemoteData, 'interval', hours=1)  # 每隔一个小时，刷新一次远端数据
-        self.scheduler.add_job(self.goodMorning, "date", next_run_time=getTodayHM(6, 0), misfire_grace_time=600)
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=getTodayHM(7, 30), misfire_grace_time=600)
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=getTodayHM(9, 35), misfire_grace_time=600)
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=getTodayHM(11, 40), misfire_grace_time=600)
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=getTodayHM(15, 5), misfire_grace_time=600)
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=getTodayHM(17, 10), misfire_grace_time=600)
-        self.scheduler.add_job(self.goodNight, "date", next_run_time=getTodayHM(17, 30), misfire_grace_time=600)
 
-        # # 调试用
-        # self.scheduler.add_job(self.goodMorning, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
-        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=4))
-        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=5))
-        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=6))
-        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=7))
-        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=8))
-        # self.scheduler.add_job(self.goodNight, "date", next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=9))
+    @staticmethod
+    def getTodayHM(hour, minute):
+        today = datetime.datetime.today()
+        return datetime.datetime(today.year, today.month, today.day, hour, minute)
 
     @staticmethod
     def getUsers() -> List[UserHandler]:
@@ -72,6 +56,34 @@ class SillageDingtalkHandler:
         self.users: List[UserHandler] = self.getUsers()
 
     def start(self):
+        self.scheduler.add_job(self.refreshRemoteData, 'interval', hours=1)  # 每隔一个小时，刷新一次远端数据
+        self.scheduler.add_job(self.goodMorning, "date", next_run_time=self.getTodayHM(6, 0), misfire_grace_time=600)
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=self.getTodayHM(7, 30), misfire_grace_time=600)
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=self.getTodayHM(9, 35), misfire_grace_time=600)
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=self.getTodayHM(11, 40), misfire_grace_time=600)
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=self.getTodayHM(15, 5), misfire_grace_time=600)
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=self.getTodayHM(17, 10), misfire_grace_time=600)
+        self.scheduler.add_job(self.goodNight, "date", next_run_time=self.getTodayHM(17, 30), misfire_grace_time=600)
+
+        self.scheduler.start()
+
+    def test(self):
+        user: List[UserHandler] = self.users[:1]
+        self.scheduler.add_job(partial(self.goodMorning, sendDateTime=True, users=user), "date",
+                               next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=3))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1, sendDateTime=True, users=user), "date",
+                               next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=4))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2, sendDateTime=True, users=user), "date",
+                               next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=5))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3, sendDateTime=True, users=user), "date",
+                               next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=6))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4, sendDateTime=True, users=user), 'date',
+                               next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=7))
+        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5, sendDateTime=True, users=user), 'date',
+                               next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=8))
+        self.scheduler.add_job(partial(self.goodNight, sendDateTime=True, users=user), "date",
+                               next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=9))
+
         self.scheduler.start()
 
     def shutdown(self):
@@ -83,37 +95,51 @@ class SillageDingtalkHandler:
         apiHandler.refreshCourses()
         self.refreshUsers()
 
-    def goodMorning(self):
+    def goodMorning(self, addition: str = "更多信息: course.siae.top", sendDateTime: bool = False, users: List[UserHandler] = None):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
-        self.sendCourseOfDate(todayDate, dateDescription=f"今天({todayDate})", addition="更多信息: yuque.com/laorange/sillage")
+        self.sendCourseOfDate(todayDate, dateDescription=f"今天({todayDate})", sendDateTime=sendDateTime, addition=addition, users=users)
 
-    def goodNight(self):
+    def goodNight(self, addition: str = "更多信息: course.siae.top", sendDateTime: bool = False, users: List[UserHandler] = None):
         tomorrowDate = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-        self.sendCourseOfDate(tomorrowDate, f"明天({tomorrowDate})")
+        self.sendCourseOfDate(tomorrowDate, f"明天({tomorrowDate})", sendDateTime=sendDateTime, addition=addition, users=users)
         self.shutdown()
 
     @logger.catch
-    def sendCoursesOfLessonNum(self, lessonNum: int, date: str = "", addition: str = "", sendDateTime: bool = False):
+    def sendCoursesOfLessonNum(self, lessonNum: int, date: str = "", addition: str = "", sendDateTime: bool = False, users: List[UserHandler] = None):
         if not date:
             date = datetime.date.today().strftime("%Y-%m-%d")  # 默认为今天
 
-        for user in self.users:
+        if not users:
+            users = self.users
+
+        for user in users:
             courseDecoratorOfThisLessonNum = user.getCourseDecorator().filter_of_date(date).filter_of_lesson_num(lessonNum)
             if len(courseDecoratorOfThisLessonNum.value):
                 msg = f"{str(courseDecoratorOfThisLessonNum).strip()}"
                 msg += f"\n\n{'-' * 8}\n\n{addition}" if addition else ""
                 msg += f"\n\n{'-' * 8}\n\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}" if sendDateTime else ""
-                user.sendCorporationMsg(msg)
+
+                title = "丨".join([f"{course.info.name}:"
+                                  f"{','.join(['-'.join([_ for _ in ['&'.join(situ.groups), situ.room] if _]) for situ in course.situations])}"
+                                  for course in courseDecoratorOfThisLessonNum.value])
+
+                user.sendCorporationMsg(msg, title=title)
 
     @logger.catch
-    def sendCourseOfDate(self, date: str, dateDescription: str = "今天：", addition: str = "", sendDateTime: bool = False):
-        for user in self.users:
+    def sendCourseOfDate(self, date: str, dateDescription: str = "今天：", addition: str = "", sendDateTime: bool = False,
+                         users: List[UserHandler] = None):
+        if not users:
+            users = self.users
+
+        for user in users:
             courseDecoratorOfThisDate = user.getCourseDecorator().filter_of_date(date)
             if len(courseDecoratorOfThisDate.value):
                 msg = f"{dateDescription}\n\n{str(courseDecoratorOfThisDate).strip()}"
                 msg += f"\n\n{'-' * 8}\n\n{addition}" if addition else ""
                 msg += f"\n\n{'-' * 8}\n\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}" if sendDateTime else ""
-                user.sendCorporationMsg(msg)
+
+                title = f"{dateDescription}有{len(courseDecoratorOfThisDate.value)}节课"
+                user.sendCorporationMsg(msg, title=title)
 
     @staticmethod
     def urlStrip(url: str):
@@ -122,4 +148,5 @@ class SillageDingtalkHandler:
 
 if __name__ == '__main__':
     mainHandler = SillageDingtalkHandler()
+    # mainHandler.test()
     mainHandler.start()
