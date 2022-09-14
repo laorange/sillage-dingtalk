@@ -204,6 +204,25 @@ class DingTalkHandler:
 
         return await self.getDingTalkResponse("POST", url, params=params, json=data)
 
+    async def sendTextBulletin(self, operation_userid: str, user_id_list: List[UserId], title: str, content: str,
+                               author: str = "辣橙", is_private: bool = True, use_ding: bool = True, push_top: bool = False):
+        """ 限制：operation_userid对应人员需要具有公告发布权限 """
+        private_level = 20 if is_private else 0
+        bulletin_data = {"create_request": {
+            "operation_userid": operation_userid,
+            "private_level": private_level,
+            "ding": use_ding,
+            "blackboard_receiver": {
+                "userid_list": user_id_list
+            },
+            "title": title,
+            "content": content,
+            "push_top": push_top,
+            "author": author
+        }}
+        await self.sendBulletin(bulletin_data)
+        await asyncio.sleep(1)
+
     async def sendCorporationMsg(self, user_id_list: List[UserId], msg: Dict) -> Dict:
         """
         发送工作消息\n

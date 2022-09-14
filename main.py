@@ -36,6 +36,11 @@ class UserHandler:
     def sendCorporationMsg(self, msg: str, title="课程提醒"):
         asyncio.run(dingTalkHandler.sendCorporationMarkdownMsg([self.userId], title=title, text=msg))
 
+    def sendBulletin(self, operation_userid: str, title: str, content: str,
+                     author: str = "辣橙", is_private: bool = True, use_ding: bool = True, push_top: bool = False):
+        asyncio.run(dingTalkHandler.sendTextBulletin(operation_userid, [self.userId], title, content,
+                                                     author, is_private, use_ding, push_top))
+
 
 class SillageDingtalkHandler:
     def __init__(self):
@@ -123,7 +128,10 @@ class SillageDingtalkHandler:
                                   f"{','.join(['-'.join([_ for _ in ['&'.join(situ.groups), situ.room] if _]) for situ in course.situations])}"
                                   for course in courseDecoratorOfThisLessonNum.value])
 
-                user.sendCorporationMsg(msg, title=title)
+                # # user.sendCorporationMsg(msg, title=title)  # 发送企业工作消息
+
+                # operation_userid = users[0].userId  # 默认：第一个填表单的是一个可以发布公告的人
+                # user.sendBulletin(operation_userid, title, msg)  # 发布公告
 
     @logger.catch
     def sendCourseOfDate(self, date: str, dateDescription: str = "今天：", addition: str = "", sendDateTime: bool = False,
@@ -139,7 +147,11 @@ class SillageDingtalkHandler:
                 msg += f"\n\n{'-' * 8}\n\n{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}" if sendDateTime else ""
 
                 title = f"{dateDescription}有{len(courseDecoratorOfThisDate.value)}节课"
-                user.sendCorporationMsg(msg, title=title)
+
+                # # user.sendCorporationMsg(msg, title=title)  # 发送企业工作消息
+
+                # operation_userid = users[0].userId  # 默认：第一个填表单的是一个可以发布公告的人
+                # user.sendBulletin(operation_userid, title, msg)  # 发布公告
 
     @staticmethod
     def urlStrip(url: str):
@@ -148,5 +160,5 @@ class SillageDingtalkHandler:
 
 if __name__ == '__main__':
     mainHandler = SillageDingtalkHandler()
-    # mainHandler.test()
-    mainHandler.start()
+    mainHandler.test()
+    # mainHandler.start()
