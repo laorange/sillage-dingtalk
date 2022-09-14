@@ -81,6 +81,11 @@ class CourseDecorator:
 
         return self.filter(courseFiler)
 
+    def get_title(self):
+        return "丨".join([f"{course.info.name}:"
+                         f"{','.join(['-'.join([_ for _ in ['&'.join(situ.groups), situ.room] if _]) for situ in course.situations])}"
+                         for course in self.value])
+
     def __str__(self):
         def decorateStr(s: str):
             return s + "\n\n" if s else ""

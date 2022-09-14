@@ -143,46 +143,9 @@ class DingTalkHandler:
         self.status = "DONE"
         return addressBook
 
-    def createMyCalendar(self, publisherUserUnionId: UnionId, users: List[UserDetail], start: datetime.datetime, end: datetime.datetime,
-                         summary: str, description: str = ""):
-        """
-        根据自定义需求的创建日程，发布后即刻通知 \n
-        :param publisherUserUnionId: 发布者的ID
-        :param users: 日程参与者的信息
-        :param start: 日程开始时间
-        :param end: 日程结束时间
-        :param summary: 日程标题，最大不超过2048个字符。
-        :param description: 日程描述，最大不超过5000个字符。
-        :return: None
-        """
-
-        url = f"https://api.dingtalk.com/v1.0/calendar/users/{publisherUserUnionId}/calendars/primary/events"
-        headers = {"x-acs-dingtalk-access-token": self.accessToken}
-        data = {
-            "summary": summary,
-            "description": description,
-            "start": {
-                # "date": start.strftime("%Y-%m-%d"),
-                "dateTime": start.strftime("%Y-%m-%dT%H:%M:%S+08:00"),
-                "timeZone": "Asia/Shanghai",
-            },
-            "end": {
-                # "date": end.strftime("%Y-%m-%d"),
-                "dateTime": end.strftime("%Y-%m-%dT%H:%M:%S+08:00"),
-                "timeZone": "Asia/Shanghai",
-            },
-            "isAllDay": False,
-            "attendees": [
-                {"id": user["unionid"], "isOptional": False} for user in (users if len(users) <= 500 else users[:499])
-            ],
-            "reminders": [
-                # {"method": "dingtalk", "minutes": (end - start).seconds // 60},  # 通知发布后，应用内提醒
-                # {"method": "dingtalk", "minutes": 60 if (end - start).seconds // 60 > 60 else (end - start).seconds // 60 // 2},  # 只剩60分钟，短信提醒
-            ]
-        }
-
-        response = httpx.post(url, headers=headers, json=data).json()
-        return response
+    async def getUnionIdOfUserId(self, userId: str) -> str:
+        userDetail = await self.getUserDetail(userId)
+        return userDetail["unionid"]
 
     async def sendBulletin(self, data) -> Dict:
         url = "https://oapi.dingtalk.com/topapi/blackboard/create"
@@ -236,7 +199,7 @@ class DingTalkHandler:
                 "msg": msg,
                 "userid_list": ",".join(user_id_list)}
 
-        return await self.getDingTalkResponse("POST", url, params=params, data=data)
+        return await self.getDingTalkResponse("POST", url, params=params, json=data)
 
     async def sendCorporationTextMsg(self, user_id_list: List[UserId], text: str) -> Dict:
         """发送文字类型的工作消息"""
@@ -245,6 +208,28 @@ class DingTalkHandler:
     async def sendCorporationMarkdownMsg(self, user_id_list: List[UserId], title: str, text: str) -> Dict:
         """发送Markdown类型的工作消息"""
         return await self.sendCorporationMsg(user_id_list, msg={"msgtype": "markdown", "markdown": {"title": title, "text": text}})
+
+    async def createCalendar(self, title: str, content: str, attendeesUserIdList: List[str],
+                             start_time: datetime.datetime, end_time: datetime.datetime, remindMin: int = 0,
+                             senderId: str = "012343574120303762772"):
+        url = f"https://api.dingtalk.com/v1.0/calendar/users/{await self.getUnionIdOfUserId(senderId)}/calendars/primary/events"
+        data = {
+            "summary": title,
+            "description": content,
+            "isAllDay": False,
+            "start": {
+                "dateTime": start_time.strftime("%Y-%m-%dT%H:%M:%S+08:00"),
+                "timeZone": "Asia/Shanghai",
+            },
+            "end": {
+                "dateTime": end_time.strftime("%Y-%m-%dT%H:%M:%S+08:00"),
+                "timeZone": "Asia/Shanghai",
+            },
+            "reminders": [{"method": "dingtalk", "minutes": remindMin}] if remindMin else [],
+            "attendees": [{"id": await self.getUnionIdOfUserId(attendeesUserId), "isOptional": False} for attendeesUserId in attendeesUserIdList],
+        }
+        response = httpx.post(url, json=data, headers={"x-acs-dingtalk-access-token": self.accessToken})
+        return response
 
     def getForms(self) -> List[FormProfile]:
         url = f"https://api.dingtalk.com/v1.0/swform/users/forms"
