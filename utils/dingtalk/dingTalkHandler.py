@@ -210,8 +210,8 @@ class DingTalkHandler:
         return await self.sendCorporationMsg(user_id_list, msg={"msgtype": "markdown", "markdown": {"title": title, "text": text}})
 
     async def createCalendar(self, title: str, content: str, attendeesUserIdList: List[str],
-                             start_time: datetime.datetime, end_time: datetime.datetime, remindMin: int = 0,
-                             senderId: str = "012343574120303762772"):
+                             start_time: datetime.datetime, end_time: datetime.datetime, remindMin: int = 0):
+        senderId = attendeesUserIdList[0]  # 将第一位与会者设为发起人
         url = f"https://api.dingtalk.com/v1.0/calendar/users/{await self.getUnionIdOfUserId(senderId)}/calendars/primary/events"
         data = {
             "summary": title,
