@@ -34,6 +34,7 @@ class Course(PocketBaseModel):
     note: Optional[str]
     method: Optional[str]
 
+
 class QueryParseResult(BaseModel):
     grade: Optional[List[str]]
     room: Optional[List[str]]

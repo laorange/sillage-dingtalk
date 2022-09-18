@@ -1,6 +1,7 @@
 import json
 import math
-from typing import List, Callable, Tuple
+from collections import namedtuple
+from typing import List, Callable, Tuple, Union
 
 import httpx
 
@@ -14,8 +15,21 @@ def whether_two_list_have_same_element(list_a: List, list_b: List):
 
 
 class CourseDecorator:
-    def __init__(self, courses: List[Course]):
-        self.value: List[Course] = courses
+    def __init__(self, source: Union[Course, List[Course]]):
+        self.value: List[Course] = source if isinstance(source, list) else [source]
+
+    def get_situ_items(self):
+        teachers: List[str] = []
+        groups: List[str] = []
+        rooms: List[str] = []
+
+        for course in self.value:
+            for situation in course.situations:
+                teachers.extend(situation.teachers)
+                groups.extend(situation.groups)
+                rooms.extend(situation.groups)
+        SituItems = namedtuple("SituItems", ["teachers", "groups", "rooms"])
+        return SituItems(list(set(teachers)), list(set(groups)), list(set(rooms)))
 
     def filter(self, filter_function: CourseFilter):
         return CourseDecorator(list(filter(filter_function, self.value)))
@@ -63,7 +77,7 @@ class CourseDecorator:
 
     def filter_of_teachers(self, teachers: List[str]):
         def courseFiler(c: Course) -> bool:
-            teacher_list = list(map(lambda gg: gg[0].teacher, c.situations))
+            teacher_list = CourseDecorator(c).get_situ_items().teachers
             return whether_two_list_have_same_element(teacher_list, teachers)
 
         return self.filter(courseFiler)
@@ -76,7 +90,7 @@ class CourseDecorator:
 
     def filter_of_rooms(self, rooms: List[str]):
         def courseFiler(c: Course) -> bool:
-            room_list = list(map(lambda gg: gg[0].room, c.situations))
+            room_list = CourseDecorator(c).get_situ_items().rooms
             return whether_two_list_have_same_element(room_list, rooms)
 
         return self.filter(courseFiler)
