@@ -86,11 +86,11 @@ class SillageDingtalkHandler:
     def start(self):
         self.scheduler.add_job(self.refreshRemoteData, 'interval', hours=1)  # 每隔一个小时，刷新一次远端数据
         self.scheduler.add_job(self.goodMorning, "date", next_run_time=self.fillHourMin(6, 0), misfire_grace_time=600)
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=self.fillHourMin(7, 30), misfire_grace_time=600)
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=self.fillHourMin(9, 35), misfire_grace_time=600)
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=self.fillHourMin(11, 40), misfire_grace_time=600)
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=self.fillHourMin(15, 5), misfire_grace_time=600)
-        self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=self.fillHourMin(17, 10), misfire_grace_time=600)
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 1), "date", next_run_time=self.fillHourMin(7, 30), misfire_grace_time=600)
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 2), "date", next_run_time=self.fillHourMin(9, 35), misfire_grace_time=600)
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 3), "date", next_run_time=self.fillHourMin(11, 40), misfire_grace_time=600)
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 4), 'date', next_run_time=self.fillHourMin(15, 5), misfire_grace_time=600)
+        # self.scheduler.add_job(partial(self.sendCoursesOfLessonNum, 5), 'date', next_run_time=self.fillHourMin(17, 10), misfire_grace_time=600)
         self.scheduler.add_job(self.goodNight, "date", next_run_time=self.fillHourMin(17, 10), misfire_grace_time=600)
 
         self.scheduler.start()
