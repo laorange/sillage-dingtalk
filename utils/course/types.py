@@ -10,9 +10,11 @@ class PocketBaseModel(BaseModel):
 
 
 class Situation(BaseModel):
-    teacher: Optional[str]
-    room: Optional[str]
+    # teacher: Optional[str]
+    # room: Optional[str]
     groups: Optional[List[str]]
+    teachers: Optional[List[str]]
+    rooms: Optional[List[str]]
 
 
 class CourseInfo(BaseModel):

@@ -83,7 +83,7 @@ class CourseDecorator:
 
     def get_title(self):
         return "丨".join([f"{course.info.name}:"
-                         f"{','.join(['-'.join([_ for _ in ['&'.join(situ.groups), situ.room] if _]) for situ in course.situations])}"
+                         f"{','.join(['-'.join([_ for _ in ['&'.join(situ.groups), '&'.join(situ.rooms)] if _]) for situ in course.situations])}"
                          for course in self.value])
 
     def __str__(self):
@@ -97,8 +97,8 @@ class CourseDecorator:
             if len(c.situations) >= 1:
                 courseStr += "\n\n".join(["丨".join([item for item in [
                     decorateStr("&".join(situ.groups) if situ.groups else "").strip(),
-                    decorateStr(situ.teacher).strip(),
-                    decorateStr(situ.room).strip()
+                    decorateStr("&".join(situ.teachers) if situ.teachers else "").strip(),
+                    decorateStr("&".join(situ.rooms) if situ.rooms else "").strip()
                 ] if item]) for situ in c.situations])
             courseStr += decorateStr(c.note)
             return courseStr.strip()
