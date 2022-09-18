@@ -18,6 +18,15 @@ class UserHandler:
     def __init__(self, userId: str, subscribedUrl: str):
         self.userId = userId
         self.subscribedUrl = subscribedUrl
+        self.unionId = ""
+
+        async def getUnionId():
+            try:
+                self.unionId = await dingTalkHandler.getUnionIdOfUserId(userId)
+            except Exception as e:
+                logger.error(f"""获取id为"{userId}"的用户详细信息时出错: {e}""")
+
+        asyncio.get_event_loop().run_until_complete(getUnionId())
 
     def getCourseDecorator(self) -> CourseDecorator:
         urlParseResult = urlparse(SillageDingtalkHandler.urlStrip(self.subscribedUrl))
@@ -68,7 +77,8 @@ class SillageDingtalkHandler:
     @staticmethod
     def getUsers() -> List[UserHandler]:
         userTupleList = dingTalkHandler.getSillageUserAndUrlList()
-        return [UserHandler(userTuple[0].submitterUserId, userTuple[1]) for userTuple in userTupleList]
+        # 生成UserHandler的实例列表，并过滤掉unionId获取失败的实例
+        return [user for user in [UserHandler(userTuple[0].submitterUserId, userTuple[1]) for userTuple in userTupleList] if user.unionId]
 
     def refreshUsers(self):
         self.users: List[UserHandler] = self.getUsers()
@@ -114,10 +124,12 @@ class SillageDingtalkHandler:
         apiHandler.refreshCourses()
         self.refreshUsers()
 
+    @logger.catch
     def goodMorning(self, addition: str = "更多信息: course.siae.top", sendDateTime: bool = False, users: List[UserHandler] = None):
         todayDate = datetime.date.today().strftime("%Y-%m-%d")
         self.sendCourseOfDate(todayDate, dateDescription=f"今天({todayDate})", sendDateTime=sendDateTime, addition=addition, users=users)
 
+    @logger.catch
     def goodNight(self, addition: str = "更多信息: course.siae.top", sendDateTime: bool = False, users: List[UserHandler] = None):
         tomorrowDate = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
         self.sendCourseOfDate(tomorrowDate, f"明天({tomorrowDate})", sendDateTime=sendDateTime, addition=addition, users=users)
@@ -175,7 +187,7 @@ class SillageDingtalkHandler:
                 courseDecoratorOfThisLessonNum = courseDecoratorOfThisDate.filter_of_lesson_num(lessonNum)
                 startTime, endTime, remindMin = self.getDateTimeOfLesson(lessonNum, datetime.datetime.strptime(date, "%Y-%m-%d").date())  # 创建日程
                 asyncio.run(dingTalkHandler.createCalendar(courseDecoratorOfThisLessonNum.get_title(), str(courseDecoratorOfThisLessonNum),
-                                                           [user.userId], startTime, endTime, remindMin))
+                                                           [user.unionId], startTime, endTime, remindMin))
 
     @staticmethod
     def urlStrip(url: str):
@@ -185,4 +197,4 @@ class SillageDingtalkHandler:
 if __name__ == '__main__':
     mainHandler = SillageDingtalkHandler()
     # mainHandler.test()
-    # mainHandler.start()
+    mainHandler.start()

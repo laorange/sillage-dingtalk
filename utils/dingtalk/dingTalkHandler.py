@@ -209,10 +209,10 @@ class DingTalkHandler:
         """发送Markdown类型的工作消息"""
         return await self.sendCorporationMsg(user_id_list, msg={"msgtype": "markdown", "markdown": {"title": title, "text": text}})
 
-    async def createCalendar(self, title: str, content: str, attendeesUserIdList: List[str],
+    async def createCalendar(self, title: str, content: str, attendeesUnionIdList: List[str],
                              start_time: datetime.datetime, end_time: datetime.datetime, remindMin: int = 0):
-        senderId = attendeesUserIdList[0]  # 将第一位与会者设为发起人
-        url = f"https://api.dingtalk.com/v1.0/calendar/users/{await self.getUnionIdOfUserId(senderId)}/calendars/primary/events"
+        senderUnionId = attendeesUnionIdList[0]  # 将第一位与会者设为发起人
+        url = f"https://api.dingtalk.com/v1.0/calendar/users/{senderUnionId}/calendars/primary/events"
         data = {
             "summary": title,
             "description": content,
@@ -226,7 +226,7 @@ class DingTalkHandler:
                 "timeZone": "Asia/Shanghai",
             },
             "reminders": [{"method": "dingtalk", "minutes": remindMin}] if remindMin else [],
-            "attendees": [{"id": await self.getUnionIdOfUserId(attendeesUserId), "isOptional": False} for attendeesUserId in attendeesUserIdList],
+            "attendees": [{"id": attendeesUnionId, "isOptional": False} for attendeesUnionId in attendeesUnionIdList],
         }
         response = httpx.post(url, json=data, headers={"x-acs-dingtalk-access-token": self.accessToken})
         return response

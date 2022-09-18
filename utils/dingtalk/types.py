@@ -98,7 +98,7 @@ class FormRecord(BaseModel):
     modifyTime: str
     formCode: str
     submitterUserId: str
-    submitterUserName: str
+    submitterUserName: Optional[str]
     formInstanceId: str
 
 
